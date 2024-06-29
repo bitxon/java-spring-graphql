@@ -48,8 +48,8 @@ class EmployeeMutationTest {
             .get();
 
         // then
-        assertThat(result.getId()).isNotNull();
-        assertThat(result.getName()).isEqualTo(employeeInput.name());
-        assertThat(result.getEmail()).isEqualTo(employeeInput.email());
+        assertThat(result.id()).isNotNull();
+        assertThat(result.name()).isEqualTo(employeeInput.name());
+        assertThat(result.email()).isEqualTo(employeeInput.email());
     }
 }

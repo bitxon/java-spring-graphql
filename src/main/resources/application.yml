@@ -8,6 +8,7 @@ spring:
     fail-on-missing-locations: true
   jpa:
     show-sql: true
+    open-in-view: false
     hibernate:
       ddl-auto: validate
   graphql:

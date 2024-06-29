@@ -2,6 +2,8 @@ package bitxon.spring.grapql.controller;
 
 import bitxon.spring.grapql.db.EmployeeRepository;
 import bitxon.spring.grapql.db.OrganizationRepository;
+import bitxon.spring.grapql.db.model.EmployeeEntity;
+import bitxon.spring.grapql.mapper.EntityMapper;
 import bitxon.spring.grapql.model.Employee;
 import bitxon.spring.grapql.model.EmployeeInput;
 import lombok.RequiredArgsConstructor;
@@ -19,25 +21,30 @@ public class EmployeeController {
 
     private final EmployeeRepository employeeRepository;
     private final OrganizationRepository organizationRepository;
+    private final EntityMapper entityMapper;
 
 
     @QueryMapping
     @Transactional(readOnly = true)
     public List<Employee> employees() {
-        return employeeRepository.findAll();
+        return employeeRepository.findAll().stream()
+            .map(entityMapper::mapToApi)
+            .toList();
     }
 
     @QueryMapping
     @Transactional(readOnly = true)
     public Employee employee(@Argument Integer id) {
-        return employeeRepository.findById(id).orElse(null);
+        return employeeRepository.findById(id)
+            .map(entityMapper::mapToApi)
+            .orElse(null);
     }
 
     @MutationMapping
     @Transactional
     public Employee createEmployee(@Argument EmployeeInput employee) {
         var organizationRef = organizationRepository.getReferenceById(employee.organizationId());
-        var employeeJpa = new Employee(null, employee.email(), employee.name(), organizationRef);
-        return employeeRepository.save(employeeJpa);
+        var employeeEntity = new EmployeeEntity(null, employee.email(), employee.name(), organizationRef);
+        return entityMapper.mapToApi(employeeRepository.save(employeeEntity));
     }
 }

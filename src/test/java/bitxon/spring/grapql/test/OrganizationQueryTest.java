@@ -9,9 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.test.tester.GraphQlTester;
 
-import java.util.List;
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -25,13 +22,15 @@ class OrganizationQueryTest {
     @Test
     void getOrganizationById() {
         // given
-        var expected = new Organization(1, "The Best Software Inc", Set.of());
         // language=GraphQL
         String query = """
             query GetOrganizationById($id: ID!) {
               organization(id: $id) {
                 id
                 name
+                employees {
+                    name
+                }
               }
             }
             """;
@@ -45,23 +44,23 @@ class OrganizationQueryTest {
             .get();
 
         // then
-        assertThat(result)
-            .usingRecursiveComparison()
-            .isEqualTo(expected);
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1);
+        assertThat(result.name()).isEqualTo("The Best Software Inc");
+        assertThat(result.employees()).allSatisfy(employee -> {
+            assertThat(employee.id()).isNull();
+            assertThat(employee.email()).isNull();
+            assertThat(employee.name()).isNotBlank();
+        });
     }
 
     @Test
-    void getOrganizationsWithLimit() {
+    void getOrganizationsWithLimit() { // Reproduce N+1 problem - See logs
         // given
-        var expected = List.of(
-            new Organization(1, "The Best Software Inc", Set.of()),
-            new Organization(2, "The Hardware Solutions", Set.of()),
-            new Organization(3, "The John & Partners", Set.of())
-        );
         // language=GraphQL
         String query = """
-            query GetAllOrganizations($first: Int){
-              organizations(first: $first) {
+            query GetAllOrganizations($first: Int, $after: String, $last: Int, $before: String) {
+              organizations(first: $first, after: $after, last: $last, before: $before) {
                 pageInfo {
                   hasNextPage
                   endCursor
@@ -70,6 +69,9 @@ class OrganizationQueryTest {
                   node {
                     id
                     name
+                    employees {
+                      name
+                    }
                   }
                 }
               }
@@ -78,15 +80,21 @@ class OrganizationQueryTest {
 
         // when
         var result = graphQlTester.document(query)
-            .variable("first", 3)
+            .variable("first", 5)
             .execute()
             .path("data.organizations.edges[*].node")
             .entityList(Organization.class)
             .get();
 
         // then
-        assertThat(result)
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactlyInAnyOrderElementsOf(expected);
+        assertThat(result).hasSize(5).allSatisfy(organization -> {
+            assertThat(organization).hasNoNullFieldsOrProperties();
+            assertThat(organization.employees()).allSatisfy(employee -> {
+                assertThat(employee.id()).isNull();
+                assertThat(employee.email()).isNull();
+                assertThat(employee.name()).isNotBlank();
+
+            });
+        });
     }
 }

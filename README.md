@@ -24,6 +24,9 @@ query GetEmployeeById($id: ID!) {
         id
         name
         email
+        organization {
+            name
+        }
     }
 }
 ```
@@ -41,6 +44,9 @@ query GetAllEmployees {
         id
         name
         email
+        organization {
+            name
+        }
     }
 }
 ```
@@ -54,6 +60,9 @@ query GetOrganizationById($id: ID!) {
     organization(id: $id) {
         id
         name
+        employees {
+            name
+        }
     }
 }
 ```
@@ -66,7 +75,7 @@ query GetOrganizationById($id: ID!) {
     <summary>Get All Organizations With Pagination</summary>
 
 ```graphql
-query GetAllOrganizations($first: Int, $after: String, $last: Int, $before: String){
+query GetAllOrganizations($first: Int, $after: String, $last: Int, $before: String) {
     organizations(first: $first, after: $after, last: $last, before: $before) {
         pageInfo {
             hasNextPage
@@ -76,6 +85,9 @@ query GetAllOrganizations($first: Int, $after: String, $last: Int, $before: Stri
             node {
                 id
                 name
+                employees {
+                    name
+                }
             }
         }
     }

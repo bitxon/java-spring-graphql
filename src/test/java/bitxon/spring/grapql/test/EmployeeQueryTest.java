@@ -30,6 +30,9 @@ class EmployeeQueryTest {
                 id
                 name
                 email
+                organization {
+                    name
+                }
               }
             }
             """;
@@ -43,9 +46,11 @@ class EmployeeQueryTest {
             .get();
 
         // then
-        assertThat(result)
-            .usingRecursiveComparison()
-            .isEqualTo(expectedEmployee);
+        assertThat(result).hasNoNullFieldsOrProperties();
+        assertThat(result.organization()).satisfies(organization -> {
+            assertThat(organization.id()).isNull();
+            assertThat(organization.name()).isNotBlank();
+        });
     }
 
     @Test
@@ -53,11 +58,14 @@ class EmployeeQueryTest {
         // given
         // language=GraphQL
         String query = """
-            query GetAllEmployees{
+            query GetAllEmployees {
               employees {
                 id
                 name
                 email
+                organization {
+                    name
+                }
               }
             }
             """;
@@ -71,11 +79,12 @@ class EmployeeQueryTest {
             .get();
 
         // then
-        assertThat(result).isNotEmpty()
-            .allSatisfy(employee -> {
-                assertThat(employee.getId()).isNotNull();
-                assertThat(employee.getName()).isNotBlank();
-                assertThat(employee.getEmail()).isNotBlank();
+        assertThat(result).isNotEmpty().allSatisfy(employee -> {
+            assertThat(employee).hasNoNullFieldsOrProperties();
+            assertThat(employee.organization()).satisfies(organization -> {
+                assertThat(organization.id()).isNull();
+                assertThat(organization.name()).isNotBlank();
             });
+        });
     }
 }
