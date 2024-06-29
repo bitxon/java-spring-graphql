@@ -44,7 +44,7 @@ class OrganizationMutationTest {
             .get();
 
         // then
-        assertThat(result.getId()).isNotNull();
-        assertThat(result.getName()).isEqualTo(name);
+        assertThat(result.id()).isNotNull();
+        assertThat(result.name()).isEqualTo(name);
     }
 }

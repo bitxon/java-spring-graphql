@@ -1,4 +1,5 @@
 type Query {
+    # OrganizationConnection is an artificial type - IntelliJ IDEA is not able to detect it
     organizations(first: Int, after: String, last: Int, before: String): OrganizationConnection
     organization(id: ID!): Organization
     employees: [Employee]
@@ -20,6 +21,7 @@ type Employee {
     id: ID!
     email: String!
     name: String!
+    organization: Organization!
 }
 
 input EmployeeInput {
